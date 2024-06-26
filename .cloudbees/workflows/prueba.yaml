@@ -1,23 +1,26 @@
-apiVersion: automation.cloudbees.io/v1alpha1
-kind: workflow
-name: Prueba
+name: prueba
+
 on:
   push:
     branches:
-      - "**"
+      - '**'
+
 jobs:
-  ci-job:
+  build-and-test:
+    runs-on: ubuntu-latest
+
     steps:
-      - uses: docker://alpine/git:latest
-        run: |
-          git config --global --add safe.directory /cloudbees/workspace
-      - name: checkout
-        uses: cloudbees-io/checkout@v1
-      - name: Build Go app
-        uses: docker://golang:1.20
-        run: |
-          go build -v ./...
-      - name: Run tests
-        uses: docker://golang:1.20
-        run: |
-          go test -v ./...
+      - uses: actions/checkout@v3
+
+      - name: Use Go cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ runner.temp/go }}
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20
